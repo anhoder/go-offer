@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"math"
 )
 
 func main() {
@@ -21,20 +20,28 @@ func main() {
 
 type position [2]int
 
-var boardMap map[byte][]position
-
 func exist(board [][]byte, word string) bool {
 
-	boardMap = map[byte][]position{}
+	if len(board) == 0 {
+		return false
+	}
 
 	for i := 0; i < len(board); i++ {
 		for j := 0; j < len(board[i]); j++ {
-			boardMap[board[i][j]] = append(boardMap[board[i][j]], position{i, j})
+
+			if board[i][j] == word[0] {
+				var tmp byte
+				tmp, board[i][j] = board[i][j], 0
+				if existChar(board, word, 1, position{i, j}) {
+					return true
+				}
+				board[i][j] = tmp
+			}
+
 		}
 	}
 
-
-	return existChar(board, word, 0, position{-1, -1})
+	return false
 }
 
 func existChar(board [][]byte, word string, index int, lastPos position) bool {
@@ -43,34 +50,41 @@ func existChar(board [][]byte, word string, index int, lastPos position) bool {
 		return true
 	}
 
-	if _, exist := boardMap[word[index]]; !exist {
+	// left
+	if lastPos[1] > 0 && checkPosition(board, word, index, position{lastPos[0],lastPos[1]-1}) {
+		return true
+	}
+
+	// top
+	if lastPos[0] > 0 && checkPosition(board, word, index, position{lastPos[0]-1,lastPos[1]}) {
+		return true
+	}
+
+	// right
+	if lastPos[1] < len(board[lastPos[0]])-1 && checkPosition(board, word, index, position{lastPos[0],lastPos[1]+1}) {
+		return true
+	}
+
+	// bottom
+	if lastPos[0] < len(board)-1 && checkPosition(board, word, index, position{lastPos[0]+1,lastPos[1]}) {
+		return true
+	}
+
+	return false
+}
+
+func checkPosition(board [][]byte, word string, index int, pos position) bool {
+
+	if board[pos[0]][pos[1]] != word[index] {
 		return false
 	}
 
-	for _, p := range boardMap[word[index]] {
-
-		if board[p[0]][p[1]] == 0 {
-			continue
-		}
-
-		if lastPos[0] >= 0 &&
-			lastPos[1] >= 0 &&
-			math.Abs(float64(p[0] - lastPos[0])) + math.Abs(float64(p[1] - lastPos[1])) != 1 {
-			continue
-		}
-
-		tmp := board[p[0]][p[1]]
-		board[p[0]][p[1]] = 0
-
-		if existChar(board, word, index + 1, p) {
-			board[p[0]][p[1]] = tmp
-			return true
-		}
-
-		board[p[0]][p[1]] = tmp
-
+	var tmp byte
+	tmp, board[pos[0]][pos[1]] = board[pos[0]][pos[1]], 0
+	if existChar(board, word, index+1, position{pos[0], pos[1]}) {
+		return true
 	}
-
+	board[pos[0]][pos[1]] = tmp
 
 	return false
 }
