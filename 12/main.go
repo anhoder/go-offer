@@ -18,8 +18,6 @@ func main() {
 	fmt.Println(exist(arr, word))
 }
 
-type position [2]int
-
 func exist(board [][]byte, word string) bool {
 
 	if len(board) == 0 {
@@ -29,13 +27,8 @@ func exist(board [][]byte, word string) bool {
 	for i := 0; i < len(board); i++ {
 		for j := 0; j < len(board[i]); j++ {
 
-			if board[i][j] == word[0] {
-				var tmp byte
-				tmp, board[i][j] = board[i][j], 0
-				if existChar(board, word, 1, position{i, j}) {
-					return true
-				}
-				board[i][j] = tmp
+			if existChar(board, word, 0, i, j) {
+				return true
 			}
 
 		}
@@ -44,47 +37,26 @@ func exist(board [][]byte, word string) bool {
 	return false
 }
 
-func existChar(board [][]byte, word string, index int, lastPos position) bool {
+func existChar(board [][]byte, word string, index, i, j int) bool {
 
 	if len(word) <= index {
 		return true
 	}
 
-	// left
-	if lastPos[1] > 0 && checkPosition(board, word, index, position{lastPos[0],lastPos[1]-1}) {
-		return true
-	}
-
-	// top
-	if lastPos[0] > 0 && checkPosition(board, word, index, position{lastPos[0]-1,lastPos[1]}) {
-		return true
-	}
-
-	// right
-	if lastPos[1] < len(board[lastPos[0]])-1 && checkPosition(board, word, index, position{lastPos[0],lastPos[1]+1}) {
-		return true
-	}
-
-	// bottom
-	if lastPos[0] < len(board)-1 && checkPosition(board, word, index, position{lastPos[0]+1,lastPos[1]}) {
-		return true
-	}
-
-	return false
-}
-
-func checkPosition(board [][]byte, word string, index int, pos position) bool {
-
-	if board[pos[0]][pos[1]] != word[index] {
+	if i < 0 || j < 0 || i >= len(board) || j >= len(board[0]) || board[i][j] != word[index] {
 		return false
 	}
 
-	var tmp byte
-	tmp, board[pos[0]][pos[1]] = board[pos[0]][pos[1]], 0
-	if existChar(board, word, index+1, position{pos[0], pos[1]}) {
-		return true
-	}
-	board[pos[0]][pos[1]] = tmp
 
-	return false
+	tmp := board[i][j]
+	board[i][j] = 0
+
+	res := existChar(board, word, index+1, i-1, j) ||
+		existChar(board, word, index+1, i, j-1) ||
+		existChar(board, word, index+1, i+1, j) ||
+		existChar(board, word, index+1, i, j+1)
+
+	board[i][j] = tmp
+
+	return res
 }
